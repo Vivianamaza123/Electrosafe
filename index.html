@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ElectroSafe - Monitor EMF</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --safe: #10b981;
+      --caution: #f59e0b;
+      --danger: #f97316;
+      --critical: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 16px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Encabezado */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--safe);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--safe);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    /* Tarjeta Principal de Riesgo */
+    .risk-banner {
+      background-color: var(--safe);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 16px;
+      transition: background-color 0.4s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .risk-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.9;
+    }
+
+    .risk-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 4px 0;
+    }
+
+    .risk-desc {
+      font-size: 0.85rem;
+      opacity: 0.95;
+    }
+
+    /* Tarjetas de Sensores */
+    .grid-sensors {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .sensor-name {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .sensor-value {
+      font-size: 1.7rem;
+      font-weight: 700;
+    }
+
+    .sensor-unit {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .progress-bg {
+      width: 100%;
+      height: 8px;
+      background-color: #0f172a;
+      border-radius: 4px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 20%;
+      background-color: var(--safe);
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    /* Frecuencia y Ubicación */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+
+    .info-row span:first-child {
+      color: var(--text-muted);
+    }
+
+    /* Botones de Acción */
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s ease, opacity 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .btn-calibrate {
+      background-color: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid #334155;
+    }
+
+    .btn-save {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    /* Historial rápido */
+    .history-title {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      background-color: var(--card-bg);
+      padding: 10px 14px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      border-left: 4px solid var(--safe);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">⚡ ElectroSafe</div>
+    <div class="status-badge">
+      <div class="dot"></div>
+      <span id="connStatus">ESP32 Simulado</span>
+    </div>
+  </header>
+
+  <!-- Banner de Nivel de Riesgo -->
+  <div class="risk-banner" id="riskBanner">
+    <div class="risk-label">Nivel de Exposición</div>
+    <div class="risk-title" id="riskTitle">BAJO RIESGO</div>
+    <div class="risk-desc" id="riskDesc">Valores dentro de los límites seguros (ICNIRP)</div>
+  </div>
+
+  <!-- Medidores Principales -->
+  <div class="grid-sensors">
+    <div class="card">
+      <div class="sensor-name">Campo Eléctrico (E)</div>
+      <div>
+        <span class="sensor-value" id="valE">0.0</span>
+        <span class="sensor-unit">V/m</span>
+      </div>
+      <div class="progress-bg">
+        <div class="progress-fill" id="barE"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sensor-name">Campo Magnético (B)</div>
+      <div>
+        <span class="sensor-value" id="valB">0.0</span>
+        <span class="sensor-unit">µT</span>
+      </div>
+      <div class="progress-bg">
+        <div class="progress-fill" id="barB"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Datos secundarios -->
+  <div class="card info-row">
+    <div>
+      <span>Frecuencia dominante: </span>
+      <strong id="valFreq">60.0 Hz</strong>
+    </div>
+    <div>
+      <span>Pico máx: </span>
+      <strong id="valPeak">0.0 µT</strong>
+    </div>
+  </div>
+
+  <!-- Botones -->
+  <div class="actions">
+    <button class="btn-calibrate" onclick="calibrarSensor()">🎯 Calibrar (Tara)</button>
+    <button class="btn-save" onclick="guardarLectura()">💾 Guardar Punto</button>
+  </div>
+
+  <!-- Lista de Puntos Guardados -->
+  <div class="history-title">
+    <span>Últimas mediciones guardadas</span>
+    <span id="countSaved">0 registros</span>
+  </div>
+  <div class="history-list" id="historyList"></div>
+
+  <script>
+    let offsetE = 0;
+    let offsetB = 0;
+    let rawE = 0;
+    let rawB = 0;
+    let peakB = 0;
+    let registros = [];
+
+    // Función que evalúa el riesgo según los valores de E y B
+    function evaluarRiesgo(e, b) {
+      const banner = document.getElementById('riskBanner');
+      const title = document.getElementById('riskTitle');
+      const desc = document.getElementById('riskDesc');
+
+      // Umbrales referenciales (puedes ajustarlos a tu tabla exacta)
+      if (e >= 5000 || b >= 200) {
+        banner.style.backgroundColor = 'var(--critical)';
+        title.innerText = 'ALTO RIESGO';
+        desc.innerText = '¡Supera límite ocupacional/público! Aléjese del área.';
+        return { nivel: 'Alto Riesgo', color: 'var(--critical)' };
+      } else if (e >= 2500 || b >= 100) {
+        banner.style.backgroundColor = 'var(--danger)';
+        title.innerText = 'PELIGRO';
+        desc.innerText = 'Exposición elevada cerca de red de media/alta tensión.';
+        return { nivel: 'Peligro', color: 'var(--danger)' };
+      } else if (e >= 500 || b >= 20) {
+        banner.style.backgroundColor = 'var(--caution)';
+        title.innerText = 'PRECAUCIÓN';
+        desc.innerText = 'Campo electromagnético moderado detectado.';
+        return { nivel: 'Precaución', color: 'var(--caution)' };
+      } else {
+        banner.style.backgroundColor = 'var(--safe)';
+        title.innerText = 'BAJO RIESGO';
+        desc.innerText = 'Valores dentro de los límites seguros.';
+        return { nivel: 'Bajo', color: 'var(--safe)' };
+      }
+    }
+
+    // Actualiza la pantalla con los nuevos datos
+    function actualizarUI(e, b, freq) {
+      const eNeto = Math.max(0, e - offsetE);
+      const bNeto = Math.max(0, b - offsetB);
+
+      if (bNeto > peakB) peakB = bNeto;
+
+      document.getElementById('valE').innerText = eNeto.toFixed(1);
+      document.getElementById('valB').innerText = bNeto.toFixed(1);
+      document.getElementById('valFreq').innerText = freq.toFixed(1) + ' Hz';
+      document.getElementById('valPeak').innerText = peakB.toFixed(1) + ' µT';
+
+      const estado = evaluarRiesgo(eNeto, bNeto);
+
+      // Actualizar barras de progreso (escala máx: 5000 V/m y 200 uT)
+      const pctE = Math.min(100, (eNeto / 5000) * 100);
+      const pctB = Math.min(100, (bNeto / 200) * 100);
+
+      const barE = document.getElementById('barE');
+      const barB = document.getElementById('barB');
+
+      barE.style.width = pctE + '%';
+      barE.style.backgroundColor = estado.color;
+
+      barB.style.width = pctB + '%';
+      barB.style.backgroundColor = estado.color;
+    }
+
+    // Botón Calibrar (pone a cero la lectura actual como línea base)
+    function calibrarSensor() {
+      offsetE = rawE;
+      offsetB = rawB;
+      peakB = 0;
+      alert('Sensor calibrado a cero en el entorno actual.');
+    }
+
+    // Botón Guardar Punto en el historial local
+    function guardarLectura() {
+      const e = document.getElementById('valE').innerText;
+      const b = document.getElementById('valB').innerText;
+      const nivel = document.getElementById('riskTitle').innerText;
+      const color = document.getElementById('riskBanner').style.backgroundColor;
+      const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
